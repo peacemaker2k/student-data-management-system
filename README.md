@@ -1,5 +1,7 @@
 ## 📖 Project Overview
+
 # student-data-management-system
+
 "A comprehensive Student Management System developed using Python (Flask), SQLite, and Bootstrap. The application enables administrators to add, update, and view student records, while students can log in to view and edit their personal information. Designed for efficiency and ease of use."
 
 ---
@@ -73,7 +75,7 @@ student-management-system/
    ```
 4. **Run the application:**
    ```bash
-   flask run / python app.py
+   python -m flask run
    ```
 5. **Access the application:**
    Open your browser and navigate to `http://localhost:5000`.
@@ -118,7 +120,7 @@ student-management-system/
 ## 🧑‍💻 About Me
 
 - Name: Sanjay
-- mail to: [sanjayjaya2000@gmail.com](mailto\:sanjayjaya2000@gmail.com) 
+- mail to: [sanjayjaya2000@gmail.com](mailto:sanjayjaya2000@gmail.com)
 - mobile: 9080337524
 
 ---
@@ -126,4 +128,3 @@ student-management-system/
 ## 📜 License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
