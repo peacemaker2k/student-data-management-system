@@ -1,15 +1,93 @@
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 import os
+import random, smtplib
+from email.mime.text import MIMEText
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+
+SMTP_SERVER = 'smtp.gmail.com'
+SMTP_PORT = 587
+EMAIL_ADDRESS = 'sanjayjaya2000@gmail.com'   # Replace with your email
+EMAIL_PASSWORD = 'mxya ounl yjng mvuo'   # Use app-specific password for Gmail
 
 # Database connection function
 def get_db_connection():
     conn = sqlite3.connect('student_management.db')
     conn.row_factory = sqlite3.Row
     return conn
+
+def generate_otp():
+    return str(random.randint(100000, 999999))
+
+def send_otp(email, otp):
+    subject = "Your OTP for Editing Student Details"
+    body = f"Your OTP is {otp}. It is valid for 5 minutes."
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = EMAIL_ADDRESS
+    msg['To'] = email
+
+    try:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            server.sendmail(EMAIL_ADDRESS, email, msg.as_string())
+        return True
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
+
+@app.route('/request_otp/<register_no>', methods=['GET', 'POST'])
+def request_otp(register_no):
+    if 'username' not in session or session['username'] != register_no:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('login', user='student'))
+
+    conn = get_db_connection()
+    student = conn.execute('SELECT email FROM students WHERE register_no = ?', (register_no,)).fetchone()
+    conn.close()
+
+    if student:
+        otp = generate_otp()
+        session['otp'] = otp
+        session['otp_expiry'] = (datetime.now() + timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S')
+
+        if send_otp(student['email'], otp):
+            flash('An OTP has been sent to your registered email.', 'info')
+            return redirect(url_for('verify_otp', register_no=register_no))
+        else:
+            flash('Failed to send OTP. Please try again.', 'danger')
+    else:
+        flash('Student not found.', 'danger')
+
+    return redirect(url_for('dashboard'))
+
+@app.route('/verify_otp/<register_no>', methods=['GET', 'POST'])
+def verify_otp(register_no):
+    if 'username' not in session or session['username'] != register_no:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('login', user='student'))
+
+    if request.method == 'POST':
+        entered_otp = request.form.get('otp')
+        otp_expiry = datetime.strptime(session.get('otp_expiry', ''), '%Y-%m-%d %H:%M:%S')
+
+        if datetime.now() > otp_expiry:
+            flash('OTP has expired. Please request a new one.', 'warning')
+            return redirect(url_for('request_otp', register_no=register_no))
+
+        if entered_otp == session.get('otp'):
+            session['otp_verified'] = True
+            flash('OTP verified successfully.', 'success')
+            return redirect(url_for('edit_student', register_no=register_no))
+        else:
+            flash('Invalid OTP. Please try again.', 'danger')
+
+    return render_template('verify_otp.html')
+
 
 # Home Route
 @app.route('/')
@@ -44,34 +122,6 @@ def login(user):
         flash('Invalid credentials', 'danger')
 
     return render_template('login.html',user=user)
-
-
-    # if 'username' in session:
-    #     return redirect(url_for('students_list'))
-    # return redirect(url_for('login'))
-
-# Login Route
-# # @app.route('/login', methods=['GET', 'POST'])
-# # def login():
-#     if request.method == 'POST':
-#         username = request.form['username']
-#         password = request.form['password']
-
-#         # Admin login
-#         if username == 'admin' and password == 'secret':
-#             session['username'] = 'admin'
-#             return redirect(url_for('students_list'))
-#         # Student login
-#         conn = get_db_connection()
-#         student = conn.execute('SELECT * FROM students WHERE register_no = ? AND password = ?', (username, password)).fetchone()
-#         conn.close()
-
-#         if student:
-#             session['username'] = username
-#             return redirect(url_for('student_details', register_no=username))
-#         else:
-#             flash('Invalid login credentials', 'danger')
-#     return render_template('login.html')
 
 # After login
 @app.route('/dashboard')
@@ -178,53 +228,58 @@ def student_details(register_no):
 @app.route('/edit_student/<register_no>', methods=['GET', 'POST'])
 def edit_student(register_no):
     if 'username' not in session:
+        flash('Please log in first.', 'warning')
         return redirect(url_for('login'))
-    
-    # Check if the user is admin or student
-    if session['username'] == 'admin':
-        # Admin can edit any student
-        conn = get_db_connection()
-        student = conn.execute('SELECT * FROM students WHERE register_no = ?', (register_no,)).fetchone()
-        conn.close()
-    elif session['username'] == register_no:
-        # Students can only edit their own details
-        conn = get_db_connection()
-        student = conn.execute('SELECT * FROM students WHERE register_no = ?', (register_no,)).fetchone()
-        conn.close()
-    else:
-        return redirect(url_for('student_details', register_no=session['register_no']))
-    
-    if request.method == 'POST':
-        # Get updated data from the form
-        name = request.form['name']
-        roll_no = request.form['roll_no']
-        department = request.form['department']
-        year = request.form['year']
-        dob = request.form['dob']
-        email = request.form['email']
-        mobile = request.form['mobile']
-        address = request.form['address']
-        father_name = request.form['father_name']
-        father_occupation = request.form['father_occupation']
-        mother_name = request.form['mother_name']
-        mother_occupation = request.form['mother_occupation']
-        blood_group = request.form['blood_group']
-        password = request.form['password']
 
-        # Update the student details in the database
-        conn = get_db_connection()
+    is_admin = session['username'] == 'admin'
+    is_student = session['username'] == register_no
+
+    # ❌ If neither admin nor the student themselves, block access
+    if not is_admin and not is_student:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    # 🛡️ ✅ OTP is required ONLY for students, NOT for admin
+    if is_student and not is_admin and not session.get('otp_verified'):
+        # flash('Please verify OTP before editing your details.', 'warning')
+        return redirect(url_for('request_otp', register_no=register_no))
+
+    conn = get_db_connection()
+    student = conn.execute('SELECT * FROM students WHERE register_no = ?', (register_no,)).fetchone()
+
+    if not student:
+        flash('Student not found.', 'danger')
+        return redirect(url_for('students_list'))
+
+    if request.method == 'POST':
+        updated_data = (
+            request.form['name'], request.form['roll_no'], request.form['department'],
+            request.form['year'], request.form['dob'], request.form['email'],
+            request.form['mobile'], request.form['address'], request.form['father_name'],
+            request.form['father_occupation'], request.form['mother_name'],
+            request.form['mother_occupation'], request.form['blood_group'],
+            request.form['password'], register_no
+        )
+
         conn.execute('''
-            UPDATE students
-            SET name = ?, roll_no = ?, department = ?, year = ?, dob = ?, email = ?, mobile = ?, address = ?, 
-                father_name = ?, father_occupation = ?, mother_name = ?, mother_occupation = ?, blood_group = ?, password = ?
+            UPDATE students SET
+                name = ?, roll_no = ?, department = ?, year = ?, dob = ?, email = ?, 
+                mobile = ?, address = ?, father_name = ?, father_occupation = ?, 
+                mother_name = ?, mother_occupation = ?, blood_group = ?, password = ?
             WHERE register_no = ?
-        ''', (name, roll_no, department, year, dob, email, mobile, address, father_name, father_occupation, 
-            mother_name, mother_occupation, blood_group, password, register_no))
+        ''', updated_data)
         conn.commit()
         conn.close()
-        flash('Student details updated successfully!', 'success')
+
+        # ✅ Clear OTP session after student updates details
+        if is_student:
+            session.pop('otp_verified', None)
+            session.pop('otp', None)
+            session.pop('otp_expiry', None)
+
+        flash('Student details updated successfully.', 'success')
         return redirect(url_for('student_details', register_no=register_no))
-    
+
     return render_template('edit_student.html', student=student)
 
 # Delete Student (Admin Only)
@@ -240,5 +295,5 @@ def delete_student(register_no):
     flash('Student deleted successfully!', 'success')
     return redirect(url_for('students_list'))
 
-if __name__ == 'main':
+if __name__ == '__main__':  # ✅ Correct
     app.run(debug=True)

@@ -5,7 +5,7 @@ conn = sqlite3.connect('student_management.db')
 cursor = conn.cursor()
 
 # Run the ALTER TABLE query to add a password column
-cursor.execute('ALTER TABLE students_new RENAME TO students;')
+cursor.execute('UPDATE students SET password = "temp";')
 
 # Commit the changes
 conn.commit()
