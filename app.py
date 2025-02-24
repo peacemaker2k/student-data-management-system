@@ -4,6 +4,9 @@ import os
 import random, smtplib
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta
+import pandas as pd
+from flask import send_file
+import io
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -39,6 +42,39 @@ def send_otp(email, otp):
     except Exception as e:
         print(f"Error sending email: {e}")
         return False
+
+import pandas as pd
+from flask import send_file
+import io
+
+@app.route('/export_students')
+def export_students():
+    if 'username' not in session or session['username'] != 'admin':
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('login', user='admin'))
+
+    conn = get_db_connection()
+    students = conn.execute('SELECT * FROM students').fetchall()
+    conn.close()
+
+    # Convert student data to DataFrame
+    df = pd.DataFrame(students, columns=students[0].keys() if students else [])
+
+    # ✅ Remove the 'password' column if it exists
+    if 'password' in df.columns:
+        df = df.drop(columns=['password'])
+
+    # Save to in-memory buffer
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Students')
+
+    output.seek(0)
+    return send_file(
+        output, 
+        as_attachment=True, 
+        download_name='students_list.xlsx', 
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 @app.route('/request_otp/<register_no>', methods=['GET', 'POST'])
 def request_otp(register_no):
