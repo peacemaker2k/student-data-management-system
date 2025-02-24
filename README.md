@@ -1,130 +1,200 @@
-## 📖 Project Overview
+Student Management System with OTP Verification
 
-# student-data-management-system
+📖 Overview
 
-"A comprehensive Student Management System developed using Python (Flask), SQLite, and Bootstrap. The application enables administrators to add, update, and view student records, while students can log in to view and edit their personal information. Designed for efficiency and ease of use."
+The Student Management System is a web-based application built with Flask and SQLite to manage student records efficiently. It allows administrators to add, edit, delete, and view student details, while students can log in to view and edit their profiles with OTP verification for added security. The system features a clean, responsive interface accessible across all devices and major browsers.
 
----
-
-## 🚀 Features
-
-- **Admin Functionalities:**
-  - Add, view, and edit student details.
-  - Manage student records securely.
-- **Student Functionalities:**
-  - Login to view and update personal information.
-- **Authentication:**
-  - Separate login for Admin and Students.
-  - Secure session management.
-- **Responsive Design:**
-  - Clean UI with Bootstrap 4 support for mobile and desktop.
 
 ---
 
-## 🛠️ Technologies Used
+🚀 Features
 
-- **Backend:** Python (Flask)
-- **Database:** SQLite
-- **Frontend:** HTML, CSS (Bootstrap), JavaScript
-- **Version Control:** Git
+Admin Panel: Manage student data (add, edit, delete, view) with ease.
 
----
+Student Access: Students can log in to view and edit their details securely.
 
-## 📂 Project Structure
+OTP Verification: Enhanced security for students when editing details.
 
-```
-student-management-system/
-├── app.py              # Main Flask application
-├── templates/          # HTML templates
-│   ├── home.html
-│   ├── login.html
-│   ├── dashboard.html
-│   ├── add_student.html
-│   ├── students_list.html
-│   └── edit_student.html
-├── static/             # Static files (CSS, JS, images)
-├── database.db         # SQLite database
-├── requirements.txt    # Project dependencies
-└── README.md           # Project documentation
-```
+Responsive Design: Fully accessible across desktops, tablets, and smartphones.
+
+Cross-Browser Compatibility: Works seamlessly on all major browsers.
+
+Secure Sessions: User authentication with session management.
+
+User-Friendly Interface: Intuitive navigation and clean design.
+
+
 
 ---
 
-## 💻 Installation & Setup
+🛠️ Tech Stack
 
-### Prerequisites
+Backend: Flask (Python)
 
-- Python 3.x installed on your machine.
-- Git (optional, for version control).
+Database: SQLite
 
-### Steps
+Frontend: HTML, CSS, Bootstrap (for responsive design), Jinja2 Templates
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/yourusername/student-management-system.git
-   cd student-management-system
-   ```
-2. **Create a virtual environment (recommended):**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. **Run the application:**
-   ```bash
-   python -m flask run
-   ```
-5. **Access the application:**
-   Open your browser and navigate to `http://localhost:5000`.
+Email Service: SMTP (Gmail) for OTP emails
+
+
 
 ---
 
-## 🔑 User Credentials
+📥 Installation & Setup
 
-- **Admin Login:**
-  - Username: `admin`
-  - Password: `secret`
-- **Student Login:**
-  - Use the registered student `register_no` and `password`.
+1. Clone the Repository:
+git clone <repository_url>
+
+
+2. Create a Virtual Environment:
+python -m venv venv
+
+
+3. Activate the Environment:
+
+Windows: venv\Scripts\activate
+
+macOS/Linux: source venv/bin/activate
+
+
+
+4. Install Dependencies:
+pip install -r requirements.txt
+
+
+5. Configure Environment Variables:
+Create a .env file and add:
+
+FLASK_APP=app.py
+FLASK_ENV=development
+EMAIL_ADDRESS=your_email@gmail.com
+EMAIL_PASSWORD=your_app_specific_password
+
+
+6. Run the Application:
+flask run
+
+
+7. Access the App:
+Visit http://127.0.0.1:5000/ in your browser.
+
+
+
 
 ---
 
-## 📝 How to Use
+🔑 Usage
 
-1. **Home Page:** Select either Admin or Student login.
-2. **Admin:** Can add new students, view student list, and edit student details.
-3. **Student:** Can view and update personal details.
+Admin Login:
 
----
+Username: admin
 
-## 🧪 Testing
+Password: secret
 
-- Tested on major browsers (Chrome, Firefox, Edge).
-- Ensured responsive design for different screen sizes.
-- Validated form inputs for data integrity.
 
----
+Student Access:
 
-## 📄 Future Improvements
+Students log in with their register number and password.
 
-- Password reset functionality.
-- Role-based permissions.
-- Export student data to CSV/PDF.
-- Email notifications.
+An OTP will be sent to the registered email for editing details.
+
+
+
 
 ---
 
-## 🧑‍💻 About Me
+📝 Database Schema (students table)
 
-- Name: Sanjay
-- mail to: [sanjayjaya2000@gmail.com](mailto:sanjayjaya2000@gmail.com)
-- mobile: 9080337524
+register_no (Primary Key)
+
+name
+
+roll_no
+
+department
+
+year
+
+dob
+
+email
+
+mobile
+
+address
+
+father_name
+
+father_occupation
+
+mother_name
+
+mother_occupation
+
+blood_group
+
+password
+
+
 
 ---
 
-## 📜 License
+📧 Email & OTP Setup
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Configure SMTP using Gmail with an app-specific password.
+
+OTP is valid for 5 minutes for enhanced security.
+
+
+
+---
+
+📱 Responsiveness & Accessibility
+
+Fully Responsive: The application adapts to all screen sizes, ensuring usability on desktops, tablets, and mobile devices.
+
+Cross-Browser Support: Compatible with Chrome, Firefox, Edge, Safari, and Opera.
+
+Accessible Design: Clear navigation, readable fonts, and proper contrast for a user-friendly experience.
+
+
+
+---
+
+💡 Future Enhancements
+
+Password reset via email.
+
+Data export to Excel/PDF.
+
+Role-based access control.
+
+Dark mode support.
+
+
+
+---
+
+🙌 Contributing
+
+Contributions are welcome! Feel free to fork the repo, make changes, and submit a pull request.
+
+
+---
+
+📄 License
+
+This project is licensed under the MIT License.
+
+
+---
+
+📝 Acknowledgments
+
+Flask & Python Community
+
+Bootstrap for responsive UI
+
+Gmail SMTP for email services
+
